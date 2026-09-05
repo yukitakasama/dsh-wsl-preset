@@ -15,6 +15,7 @@
     "lib",
     "cordis.patch.yml",
     "agent-presets",
+    "install.mjs",
     "README.md",
     "LICENSE"
   ],

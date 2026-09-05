@@ -27,13 +27,43 @@ DSH 自带的标准模式在 Windows 上默认使用 PowerShell 作为 shell，�
 
 ## 安装
 
+### 方式一：npm 安装（推荐）
+
 ```bash
 dsh plugin --profile web add @deepseek-ai/dsh-wsl-preset
 ```
 
-或手动合并 `cordis.patch.yml` 到 profile patch 层。**重启 DSH 后生效**；重启后插件会自动安装预设（已存在则 no-op，不会覆盖你已有的版本）。
+### 方式二：源码本地安装（推荐）
 
-也可以不装插件，直接把 `agent-presets/wsl/` 目录复制到 `~/.dsh/.agent-presets/`。
+下载源码后一行命令安装，不走网络下载，速度快且不会卡住：
+
+```bash
+git clone https://github.com/yukitakasama/dsh-wsl-preset.git
+cd dsh-wsl-preset
+node install.mjs
+```
+
+脚本会自动完成三件事：
+1. 复制预设文件到 `~/.dsh/.agent-presets/wsl/`
+2. 注入插件行到 DSH profile 的 `cordis.patch.yml`
+3. 复制插件包到 profile 的 `node_modules/`
+
+支持参数：
+- `--force` — 强制覆盖已存在的预设文件
+- `--dir DIR` — 指定 DSH Home 目录（默认 `~/.dsh`）
+
+### 方式三：手动安装
+
+1. 把 `agent-presets/wsl/` 目录复制到 `~/.dsh/.agent-presets/`
+2. 在你的 `~/.dsh/profiles/web/cordis.patch.yml` 中添加：
+
+```yaml
+- insert:
+    - id: dsh-wsl-preset
+      name: '@deepseek-ai/dsh-wsl-preset'
+```
+
+**重启 DSH 后生效**。
 
 ## 使用
 
