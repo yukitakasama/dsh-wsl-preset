@@ -1,0 +1,45 @@
+{
+  "name": "@deepseek-ai/dsh-wsl-preset",
+  "version": "0.1.0",
+  "description": "DeepSeek Harness plugin: installs the 'wsl' agent preset — the Windows WSL variant of the standard preset that routes the bash tool through Windows Subsystem for Linux (WSL), with automatic shell discovery and sandbox-aware gating.",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "agent-presets",
+    "README.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "scripts": {
+    "check": "node --check lib/index.js && node --check agent-presets/wsl/wsl-executor.mjs"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "cordis",
+    "agent-preset",
+    "wsl",
+    "windows-subsystem-for-linux",
+    "linux",
+    "windows"
+  ],
+  "license": "MIT",
+  "author": "yuki",
+  "engines": {
+    "node": ">=20"
+  }
+}
