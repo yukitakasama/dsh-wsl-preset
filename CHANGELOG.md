@@ -2,46 +2,70 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2026-09-12
+
+Adapts the preset to **dsh 0.1.5-rc.1** and moves distribution to **GitHub
+direct install** (npm publishing dropped).
+
+### Breaking
+- **`dsh-persona` no longer accepts `text`** (0.1.5-rc.1 makes `prefix` required
+  and adds `suffix`). The preset's persona row now uses `prefix` + `suffix`;
+  the previous `text:` form fails schema validation at mount.
+- **`dsh-tool-bash` no longer accepts `toolName`** — the model-facing tool is
+  always registered as `bash`. The `toolName: wsl` config was removed, so the
+  tool label is now `bash` instead of `wsl`. Commands still run through WSL;
+  only the label changed. This is an upstream constraint, not a regression we
+  can fix from a preset.
+
+### Changed
+- Distribution: **install from GitHub**, no npm publish.
+  `dsh plugin --profile web add github:yukitakasama/dsh-wsl-preset`
+- `wsl-executor.mjs`: added `GIT_PAGER=cat` to the terminal environment
+  overrides, matching upstream `dsh-bash-local`.
+- Documented the correct way to target a specific dsh instance: set
+  `DSH_HOME`, not `dsh plugin --dir` (which pnpm interprets as its working
+  directory and desyncs from the profile manifest DSH rewrites).
+- `install.mjs`: `--home DIR` added as the preferred flag; `--dir DIR` kept as
+  an alias.
+- README rewritten around GitHub install, with a dsh 0.1.5-rc.1 compatibility
+  table.
+
+### Added
+- Synced the tool surface with the shipped `standard` preset of 0.1.5-rc.1:
+  - `@deepseek-ai/dsh-command-goal` row
+  - `@deepseek-ai/dsh-tool-present` row
+  - `tool-subagent`: `modelSelectionSettings: true`
+  - `tool-web`: `fetch: true`
+- `peerDependencies`: `@deepseek-ai/dsh >= 0.1.5-rc.1`
+
+### Migration
+If you installed an earlier version:
+
+1. Reinstall from GitHub:
+   ```bash
+   dsh plugin --profile web add github:yukitakasama/dsh-wsl-preset
+   ```
+2. Reinstall the preset files (they are only copied on boot, and the persona
+   schema changed):
+   ```bash
+   node install.mjs --force
+   ```
+   or set `force: true` on the plugin row in `cordis.patch.yml`.
+3. Restart DSH.
+
 ## [0.2.0] - 2026-09-12
 
 ### Changed
-- **BREAKING**: Package name changed from `@deepseek-ai/dsh-wsl-preset` to `@yukitakasama/dsh-wsl-preset`
-- Updated package scope to use personal npm account for public distribution
-- Enhanced documentation with specific instance installation instructions
+- Package renamed from `@deepseek-ai/dsh-wsl-preset` to
+  `@yukitakasama/dsh-wsl-preset` (personal scope).
+- Added `publishConfig.access: "public"`, repository/bugs/homepage metadata.
 
-### Added
-- Support for installing to specific dsh instances using `--dir` flag
-- `publishConfig.access: "public"` to ensure npm package is publicly installable
-- `peerDependencies` specification requiring `@deepseek-ai/dsh >= 0.1.5-rc.1`
-- `prepublishOnly` script to run validation before publishing
-- Repository, bugs, and homepage URLs in package.json for better npm package page
-
-### Fixed
-- Updated all documentation and configuration files to reference the new package name
-- Improved README with clearer installation instructions for different use cases
-
-### Migration Guide
-If you previously installed this package as `@deepseek-ai/dsh-wsl-preset`:
-
-1. Uninstall the old package:
-   ```bash
-   dsh plugin --profile web remove @deepseek-ai/dsh-wsl-preset
-   ```
-
-2. Install the new package:
-   ```bash
-   dsh plugin --profile web add @yukitakasama/dsh-wsl-preset
-   ```
-
-3. Restart your DSH instance
+> This release was never published to npm — distribution moved to GitHub
+> direct install in 0.3.0.
 
 ## [0.1.0] - 2026-08-10
 
 ### Added
-- Initial release of dsh-wsl-preset plugin
-- WSL bash executor for Windows environments
-- Idempotent preset installation
-- Automatic WSL detection
-- Sandbox-aware command gating
-- Complete tool surface compatibility with standard mode
-- Local installation script (install.mjs)
+- Initial release: WSL agent preset with `wsl -e bash -c` execution.
+- Idempotent preset installation, automatic WSL detection, sandbox-aware gating.
+- `install.mjs` local installation script.

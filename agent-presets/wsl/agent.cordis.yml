@@ -16,17 +16,26 @@
 # private instance, apart from every other preset's. (A shared label does NOT
 # pool instances — `provide()` throws on the second registration under the
 # same realm symbol; labels join REALMS, and are not what this file needs.)
+#
+# Synced against the shipped `standard` preset of dsh 0.1.5-rc.1. The only
+# intended divergence is the shell section below, which swaps the host bash/pwsh
+# rows for an entry-local WSL executor so every command runs through
+# `wsl -e bash -c`. When the upstream standard preset gains rows, mirror them
+# here to keep the two presets at tool parity.
 
 # ── identity ────────────────────────────────────────────────────────────────
 
 # The preset's own persona, shadowing the deployment default for this agent.
 # `{{model}}` and `{{cwd}}` resolve from the agent's own route and workspace.
+# `prefix` is REQUIRED by the persona schema; `suffix` carries the runtime
+# workspace line.
 - id: persona
   name: '@deepseek-ai/dsh-persona'
   config:
-    text: >-
-      You are a coding agent powered by the {{model}} model. Your working directory is {{cwd}}.
+    prefix: >-
+      You are a coding agent powered by the {{model}} model.
       You use WSL Linux commands (bash) as your shell execution environment.
+    suffix: Your working directory is {{cwd}}.
 
 - id: agent-instructions
   name: '@deepseek-ai/dsh-agent-instructions'
@@ -40,6 +49,14 @@
 # this preset's ctx.shell does not leak to other presets or the host plane.
 # Sandbox: WSL requires full process access, so commands are gated on
 # danger-full-access policy.
+#
+# `shell-env` deliberately stays in the HOST composition: it is a host-plane
+# service that publishes DSH_WEB_URL/DSH_WEB_MODE, and the realm below isolates
+# only `shell`, so tool-bash still resolves it through the host.
+#
+# NOTE (dsh >= 0.1.5-rc.1): `@deepseek-ai/dsh-tool-bash` no longer accepts a
+# `toolName` config — the model-facing tool is always named `bash`. The WSL
+# executor therefore changes what the tool RUNS, not what it is called.
 - id: wsl-shell
   name: cordis:group
   group: true
@@ -59,7 +76,6 @@
       name: '@deepseek-ai/dsh-tool-bash'
       config:
         enableRunInBackground: false
-        toolName: wsl
 
 # ── filesystem ──────────────────────────────────────────────────────────────
 
@@ -75,13 +91,18 @@
 
 # ── background jobs ────────────────────────────────────────────────────────
 
-# Only the model-facing controls. The task REGISTRY stays on the host plane.
+# Only the model-facing controls. The task REGISTRY stays on the host plane:
+# its producers sit outside any realm this file could put it in, so an
+# entry-local realm here would leave `run_in_background` answering "background
+# jobs unavailable" while these controls sat in the catalog. The registry is
+# keyed by owning agent anyway, so one host instance serves every session.
 - id: tool-jobs
   name: '@deepseek-ai/dsh-tool-jobs'
 
 # ── skills ──────────────────────────────────────────────────────────────────
 
-# The skill REGISTRY lives in the host composition and is layered per scope.
+# The skill REGISTRY lives in the host composition and is layered per scope:
+# these rows register into THIS preset's layer of it, so they need no realm.
 - id: skill-filesystem
   name: '@deepseek-ai/dsh-skill-filesystem'
 
@@ -90,13 +111,19 @@
 
 # ── goals ───────────────────────────────────────────────────────────────────
 
-# Only the model-facing tool. The goal SERVICE stays on the host plane.
+# The goal service and session driver stay on the host plane, where the Gateway
+# can resolve them. The human command and model-facing tool register into this
+# preset's scoped layers.
+- id: command-goal
+  name: '@deepseek-ai/dsh-command-goal'
+
 - id: tool-goal
   name: '@deepseek-ai/dsh-tool-goal'
 
 # ── plan mode ───────────────────────────────────────────────────────────────
 
-# Plan state is per-agent by nature, so an entry-local realm is correct here.
+# Plan state is per-agent by nature, so an entry-local realm is not a
+# workaround here — it is the correct lifetime.
 - id: planning
   name: cordis:group
   group: true
@@ -125,7 +152,8 @@
 # share this realm rather than sit outside it.
 #
 # `tokenMeter` is deliberately NOT in this realm: the meter stays on the HOST
-# plane, and the rows here resolve that one instance.
+# plane, and the rows here resolve that one instance. What a preset chooses is
+# whether its agent compacts at all, which is `compaction-basic` below.
 - id: compaction
   name: cordis:group
   group: true
@@ -149,7 +177,9 @@
 # ── delegation and workflows ────────────────────────────────────────────────
 
 # The `subagents` registry and its spawn/fork backends live in the HOST
-# composition. This preset contributes the delegation TOOLS.
+# composition. This preset contributes the delegation TOOLS, which resolve
+# that host registry. `workflows` is per-agent, so every row that reaches it
+# shares one entry-local realm here.
 - id: delegation
   name: cordis:group
   group: true
@@ -167,8 +197,11 @@
       config:
         provider: spawn
         toolName: subagent
+        modelSelectionSettings: true
         backgroundMode: continuable
 
+    # Fork omits model selection so provider/model stay equal to the parent and
+    # the inherited history remains eligible for KV Cache reuse.
     - id: tool-subagent-fork
       name: '@deepseek-ai/dsh-tool-subagent'
       config:
@@ -176,6 +209,9 @@
         toolName: subagent_fork
         backgroundMode: continuable
 
+    # Production dsh does not install these optional providers. Install the
+    # matching Bundle in this Profile and restart the Host, then copy this
+    # preset and remove `disabled` from the matching tool row.
     - id: tool-subagent-codex
       name: '@deepseek-ai/dsh-tool-subagent'
       disabled: true
@@ -223,5 +259,8 @@
 - id: tool-web
   name: '@deepseek-ai/dsh-tool-web'
   config:
-    fetch: false
+    fetch: true
     searchTimeoutMs: 60000
+
+- id: present
+  name: '@deepseek-ai/dsh-tool-present'
