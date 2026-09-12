@@ -6,6 +6,13 @@
  * preset-local files resolve against the preset directory, so DSH package
  * imports (node_modules) would fail, while `node:fs` is always available.
  *
+ * Contract: conforms to the `ctx.shell` seam of dsh 0.1.5-rc.1
+ * (`@deepseek-ai/dsh-shell`) — `sandboxMode`, `resolve`, `run`, `start` — and
+ * therefore stays a plain functional plugin that calls `ctx.provide('shell', …)`
+ * instead of subclassing the `ShellExecutor` service. That subclass route needs
+ * `@deepseek-ai/dsh-shell` at import time, which is unreachable from a preset
+ * directory; the produced object is behaviourally identical for the tool layer.
+ *
  * Sandbox note: WSL cannot run inside the Windows restricted-token sandbox,
  * so commands are gated on the danger-full-access policy. The bash tool's
  * single-call `sandbox_permissions: "danger-full-access"` escalation, or
@@ -27,6 +34,7 @@ const ENV_OVERRIDES = {
   NO_COLOR: '1',
   TERM: 'dumb',
   PAGER: 'cat',
+  GIT_PAGER: 'cat',
 }
 
 /**

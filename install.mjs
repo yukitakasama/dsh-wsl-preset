@@ -14,8 +14,10 @@
  *   3. 将插件包复制到 profile 的 node_modules/（如尚未安装）
  *
  * 选项：
- *   --force    强制覆盖已存在的预设文件
- *   --dir DIR  指定 DSH Home 目录（默认 ~/.dsh）
+ *   --force      强制覆盖已存在的预设文件
+ *   --home DIR   指定 DSH Home 目录（默认 ~/.dsh）
+ *   --dir DIR    --home 的别名（注意：与 `dsh plugin --dir` 语义不同，
+ *                那个是 pnpm 的工作目录，这里是 DSH Home）
  */
 
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync } from 'node:fs'
@@ -28,8 +30,8 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url))
 // ── 参数解析 ──
 const args = process.argv.slice(2)
 const force = args.includes('--force')
-const dirIdx = args.indexOf('--dir')
-const dshHome = dirIdx !== -1 && args[dirIdx + 1] ? args[dirIdx + 1] : join(homedir(), '.dsh')
+const flagIdx = Math.max(args.indexOf('--home'), args.indexOf('--dir'))
+const dshHome = flagIdx !== -1 && args[flagIdx + 1] ? args[flagIdx + 1] : join(homedir(), '.dsh')
 
 // ── 路径常量 ──
 const PRESET_ID = 'wsl'
