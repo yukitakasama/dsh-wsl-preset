@@ -36,7 +36,7 @@ const PRESET_ID = 'wsl'
 const PRESET_FILES = ['agent.cordis.yml', 'wsl-executor.mjs', 'preset.yml']
 const PRESET_SRC = join(__dirname, 'agent-presets', PRESET_ID)
 const PRESET_DST = join(dshHome, '.agent-presets', PRESET_ID)
-const PLUGIN_NAME = '@deepseek-ai/dsh-wsl-preset'
+const PLUGIN_NAME = '@yukitakasama/dsh-wsl-preset'
 const INSERT_ID = 'dsh-wsl-preset'
 
 /** 查找 DSH web profile 目录 */

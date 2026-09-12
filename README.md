@@ -30,7 +30,13 @@ DSH 自带的标准模式在 Windows 上默认使用 PowerShell 作为 shell，�
 ### 方式一：npm 安装（推荐）
 
 ```bash
-dsh plugin --profile web add @deepseek-ai/dsh-wsl-preset
+dsh plugin --profile web add @yukitakasama/dsh-wsl-preset
+```
+
+**针对特定 dsh 实例安装**：
+
+```bash
+dsh plugin --profile web add @yukitakasama/dsh-wsl-preset --dir /path/to/dsh/instance
 ```
 
 ### 方式二：源码本地安装（推荐）
@@ -60,7 +66,7 @@ node install.mjs
 ```yaml
 - insert:
     - id: dsh-wsl-preset
-      name: '@deepseek-ai/dsh-wsl-preset'
+      name: '@yukitakasama/dsh-wsl-preset'
 ```
 
 **重启 DSH 后生效**。

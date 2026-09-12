@@ -1,6 +1,6 @@
 {
-  "name": "@deepseek-ai/dsh-wsl-preset",
-  "version": "0.1.0",
+  "name": "@yukitakasama/dsh-wsl-preset",
+  "version": "0.2.0",
   "description": "DeepSeek Harness plugin: installs the 'wsl' agent preset — the Windows WSL variant of the standard preset that routes the bash tool through Windows Subsystem for Linux (WSL), with automatic shell discovery and sandbox-aware gating.",
   "type": "module",
   "main": "lib/index.js",
@@ -25,7 +25,8 @@
     }
   },
   "scripts": {
-    "check": "node --check lib/index.js && node --check agent-presets/wsl/wsl-executor.mjs"
+    "check": "node --check lib/index.js && node --check agent-presets/wsl/wsl-executor.mjs",
+    "prepublishOnly": "npm run check"
   },
   "keywords": [
     "deepseek-harness",
@@ -39,8 +40,22 @@
     "windows"
   ],
   "license": "MIT",
-  "author": "yuki",
+  "author": "yukitakasama",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yukitakasama/dsh-wsl-preset.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yukitakasama/dsh-wsl-preset/issues"
+  },
+  "homepage": "https://github.com/yukitakasama/dsh-wsl-preset#readme",
   "engines": {
     "node": ">=20"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh": ">=0.1.5-rc.1"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

@@ -2,7 +2,11 @@
 # profile roster. Applied as a profile bundle layer (the `dsh.bundle.patch`
 # manifest field); activate with:
 #
-#   dsh plugin --profile web add @deepseek-ai/dsh-wsl-preset
+#   dsh plugin --profile web add @yukitakasama/dsh-wsl-preset
+#
+# Or install for a specific dsh instance:
+#
+#   dsh plugin --profile web add @yukitakasama/dsh-wsl-preset --dir /path/to/dsh/instance
 #
 # The row's node half copies the packaged `wsl` agent preset into
 # the user preset root (${DSH_HOME:-~/.dsh}/.agent-presets) on boot, unless it
@@ -10,4 +14,4 @@
 # preset files.
 - insert:
     - id: dsh-wsl-preset
-      name: '@deepseek-ai/dsh-wsl-preset'
+      name: '@yukitakasama/dsh-wsl-preset'
