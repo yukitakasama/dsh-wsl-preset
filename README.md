@@ -13,7 +13,7 @@ DSH 自带的标准模式在 Windows 上默认使用 PowerShell 作为 shell，�
 ## 特性
 
 - **GitHub 直装**：`dsh plugin add github:...` 通过 pnpm 直接拉取本仓库，无需 npm 发布；
-- **幂等安装**：插件启动时把打包的预设复制到用户预设根（`${DSH_HOME:-~/.dsh}/.agent-presets/wsl/`），已存在则跳过，`force: true` 才覆盖；
+- **幂等 + 自修复**：插件启动时把打包的预设装进用户预设根（`${DSH_HOME:-~/.dsh}/.agent-presets/wsl/`）；已存在但与包内文件不一致时**自动刷新**，因此升级插件就能修好旧版本留下的预设（`autoUpdate: false` 只报告不覆盖，`force: true` 无条件覆盖）；
 - **自动探测 WSL**：检查 `wsl.exe` 是否可用（System32 目录），无需硬编码路径；
 - **沙箱感知门控**：WSL 运行时无法在 Windows 受限令牌沙箱内启动，因此命令仅在「完全访问」策略下执行——不绕过沙箱，受限时给出明确升级指引；
 - **完整功能**：与标准模式工具表面保持一致（仅 shell 执行环境不同）；
@@ -23,7 +23,7 @@ DSH 自带的标准模式在 Windows 上默认使用 PowerShell 作为 shell，�
 
 | 环节 | 说明 |
 | --- | --- |
-| 插件行 | `cordis.patch.yml` 在 web profile 组合中插入 `dsh-wsl-preset`，启动时安装预设文件 |
+| 插件行 | `cordis.patch.yml` 在 web profile 组合中插入 `dsh-wsl-preset`，启动时安装/刷新预设文件 |
 | 预设组合 | `agent.cordis.yml` 中 `wsl-shell` 组以 entry-local realm 提供 `shell` 服务，`tool-bash` 注册模型工具 |
 | 执行器 | `wsl-executor.mjs` 通过 host 的 `subprocess` 服务执行 `wsl -e bash -c`，处理超时、后台、输出截断与错误诊断 |
 | 沙箱门控 | `run`/`start` 校验策略：仅 `danger-full-access`（或部署无沙箱）放行，否则抛出带指引的错误 |
@@ -136,13 +136,37 @@ node install.mjs
 
 | 字段 | 默认 | 说明 |
 | --- | --- | --- |
-| `force` | `false` | 预设已存在时是否用包内文件覆盖（保留用户额外文件） |
+| `autoUpdate` | `true` | 已装预设与包内文件不一致时自动刷新（升级插件即修复旧版本留下的预设） |
+| `force` | `false` | 即使文件已经一致也覆盖（保留用户额外文件） |
 
 ## 开发
 
 ```bash
-npm run check   # node --check lib/index.js && node --check agent-presets/wsl/wsl-executor.mjs
+npm run check   # 语法检查
+npm test        # 安装器回归测试（node --test tests/）
 ```
+
+## 故障排查
+
+**选不到「WSL 模式」，或切换该模式时被拒绝。**
+
+预设装在 `${DSH_HOME:-~/.dsh}/.agent-presets/wsl/`。如果这个目录里的文件是旧版本留下的，DSH 会按**当前**插件的 schema 校验行配置而挂载失败——0.1.0 的预设使用 `dsh-persona` 已移除的 `text` 键，在 0.1.5 上报：
+
+```text
+agent-presets: preset "wsl" failed to mount: ... $.prefix missing required value
+```
+
+挂载失败的 preset 无法被选择，因此只能看到报错而切不过去。修复方式任选其一：
+
+1. **升级到 0.3.1 或更高并重启 DSH** —— 插件启动时会自动把该目录刷新为包内文件；
+2. 手动刷新预设文件：
+   ```bash
+   DSH_HOME=<你的实例> node install.mjs --force
+   ```
+3. 在 profile 的 `cordis.patch.yml` 插入行上临时加 `config: { force: true }` 后重启；
+4. 直接删除 `wsl/` 目录：下次启动会重新安装。
+
+自查：该目录里的 `agent.cordis.yml` 应当含 `prefix:`，不含 `text:`。
 
 ## 限制
 
@@ -158,7 +182,8 @@ dsh-wsl-preset/
 ├── package.json          # 包清单，声明 dsh.bundle.patch
 ├── cordis.patch.yml      # profile 组合层：插入插件行
 ├── install.mjs           # 源码本地安装脚本
-├── lib/index.js          # host 插件：启动时幂等安装预设
+├── lib/index.js          # host 插件：启动时安装/刷新预设
+├── tests/install.test.mjs # 安装器回归测试（含旧版预设升级路径）
 └── agent-presets/wsl/
     ├── preset.yml        # 预设元数据（名称、描述、排序）
     ├── agent.cordis.yml  # agent-plane 组合（工具表面 + WSL shell）

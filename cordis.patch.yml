@@ -10,10 +10,16 @@
 #
 #   DSH_HOME=/path/to/instance/.dsh dsh plugin --profile web add github:yukitakasama/dsh-wsl-preset
 #
-# The row's node half copies the packaged `wsl` agent preset into
-# the user preset root (${DSH_HOME:-~/.dsh}/.agent-presets) on boot, unless it
-# is already installed. Pass `force: true` in the row config to overwrite the
-# preset files.
+# The row's node half installs the packaged `wsl` agent preset into the user
+# preset root (${DSH_HOME:-~/.dsh}/.agent-presets) on boot, and refreshes it
+# whenever the packaged files changed. That refresh is what repairs a copy an
+# older release installed: nothing else ever rewrites those files, so an
+# upstream schema change (dsh 0.1.5 made `dsh-persona`'s `prefix` required)
+# would leave the preset unmountable and 「WSL 模式」 unselectable.
+#
+# Row config:
+#   autoUpdate: false   only report the drift, never overwrite
+#   force: true         overwrite unconditionally, even when nothing drifted
 - insert:
     - id: dsh-wsl-preset
       name: '@yukitakasama/dsh-wsl-preset'

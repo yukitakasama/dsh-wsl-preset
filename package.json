@@ -1,6 +1,6 @@
 {
   "name": "@yukitakasama/dsh-wsl-preset",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "DeepSeek Harness plugin: installs the 'wsl' agent preset — the Windows WSL variant of the standard preset that routes the bash tool through Windows Subsystem for Linux (WSL), with automatic shell discovery and sandbox-aware gating.",
   "type": "module",
   "main": "lib/index.js",
@@ -25,8 +25,9 @@
     }
   },
   "scripts": {
-    "check": "node --check lib/index.js && node --check agent-presets/wsl/wsl-executor.mjs",
-    "prepublishOnly": "npm run check"
+    "check": "node --check lib/index.js && node --check agent-presets/wsl/wsl-executor.mjs && node --check tests/install.test.mjs",
+    "test": "node --test",
+    "prepublishOnly": "npm run check && npm test"
   },
   "keywords": [
     "deepseek-harness",
