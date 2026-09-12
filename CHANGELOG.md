@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.1] - 2026-09-12
+
+### Fixed
+- **Upgrading the plugin left 「WSL 模式」 unselectable.** The boot-time
+  installer treated an already-installed preset as final: when the packaged
+  files differed it only logged `packaged files differ — set force: true`, so
+  the files an earlier release had copied were never replaced. Because dsh
+  0.1.5 made `dsh-persona`'s `prefix` required, that stale composition failed
+  the whole mount with `$.prefix missing required value`; the session refused
+  the preset and the picker could not offer the mode. Installing 0.3.0 did not
+  help, because its install path saw a directory that was already there.
+  The installer now refreshes the packaged files whenever they differ from the
+  installed copy, so the first boot on this release repairs the install.
+  `install.mjs` already refreshed; `lib/index.js` did not.
+- A directory holding only the residue of an interrupted install (no
+  `agent.cordis.yml`) is now repaired instead of skipped: the composition file,
+  not the whole file set, decides whether a usable preset is already in place.
+- A preset root that cannot be written is reported and ignored rather than
+  thrown, so a read-only `${DSH_HOME}` can no longer fail the profile boot.
+
+### Added
+- `autoUpdate: false` on the plugin row: report drift without overwriting, for
+  a deployment that maintains its own copy of the preset.
+- `npm test` — installer regression tests (`tests/install.test.mjs`), including
+  the stale-preset upgrade path this release fixes. `prepublishOnly` runs them
+  together with `npm run check`.
+
+### Changed
+- `force: true` still overwrites unconditionally. The preset directory stays
+  plugin-owned; a preset a user wants to customize belongs in a copy under a
+  new id, so refreshing this one never discards authored work.
+
 ## [0.3.0] - 2026-09-12
 
 Adapts the preset to **dsh 0.1.5-rc.1** and moves distribution to **GitHub
